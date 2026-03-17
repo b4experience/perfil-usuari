@@ -16,6 +16,10 @@ interface AppState {
   locale: Locale
   setLocale: (l: Locale) => void
 
+  // ─── User name (test mode) ────────────────────────────────────────────────
+  userName: string
+  setUserName: (n: string) => void
+
   // ─── Selected discipline ─────────────────────────────────────────────────
   selectedDiscipline: Discipline | null
   setDiscipline: (d: Discipline) => void
@@ -45,6 +49,9 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       locale: 'es',
       setLocale: (locale) => set({ locale }),
+
+      userName: '',
+      setUserName: (userName) => set({ userName }),
 
       selectedDiscipline: null,
       setDiscipline: (selectedDiscipline) => set({ selectedDiscipline }),
@@ -78,6 +85,7 @@ export const useAppStore = create<AppState>()(
       // Do NOT persist test responses or results to localStorage for privacy
       partialize: (state) => ({
         locale:             state.locale,
+        userName:           state.userName,
         selectedDiscipline: state.selectedDiscipline,
         consent:            state.consent,
         sliders:            state.sliders,

@@ -2,8 +2,6 @@
 
 import { usePathname } from 'next/navigation'
 import Link            from 'next/link'
-import { useAppStore } from '@/context/AppContext'
-import { useT }        from '@/lib/i18n'
 
 const STEPS = [
   { path: '/onboarding/consent', label: 'Consentimiento', num: 1 },
@@ -14,8 +12,6 @@ const STEPS = [
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const pathname         = usePathname()
-  const { locale }       = useAppStore()
-  const t                = useT(locale)
   const currentStepIndex = STEPS.findIndex((s) => pathname.startsWith(s.path))
   const isTestOrResults  = pathname.includes('/test') || pathname.includes('/results')
 
@@ -24,7 +20,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
 
       {/* ── Top bar ─────────────────────────────────────────────────── */}
       <header className="relative z-10 flex items-center justify-between px-6 pt-5 pb-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/activitat" className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-glacier/10 border border-glacier/30 flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1.5L13 12.5H1L7 1.5Z" fill="#5BA3C9" opacity="0.3"/>
