@@ -56,7 +56,7 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
           j === 0 ? ctx!.moveTo(pt.x, pt.y) : ctx!.lineTo(pt.x, pt.y)
         }
         ctx!.closePath()
-        ctx!.strokeStyle = 'rgba(30, 47, 66, 0.9)'
+        ctx!.strokeStyle = 'rgba(200, 213, 232, 0.9)'
         ctx!.lineWidth   = 1
         ctx!.stroke()
       }
@@ -68,7 +68,7 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
         ctx!.beginPath()
         ctx!.moveTo(cx, cy)
         ctx!.lineTo(pt.x, pt.y)
-        ctx!.strokeStyle = 'rgba(42, 63, 86, 0.6)'
+        ctx!.strokeStyle = 'rgba(200, 213, 232, 0.6)'
         ctx!.lineWidth   = 1
         ctx!.stroke()
       }
@@ -95,9 +95,9 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
         j === 0 ? ctx!.moveTo(pt.x, pt.y) : ctx!.lineTo(pt.x, pt.y)
       }
       ctx!.closePath()
-      ctx!.fillStyle   = 'rgba(91,163,201,0.15)'
+      ctx!.fillStyle   = 'rgba(11,110,232,0.10)'
       ctx!.fill()
-      ctx!.strokeStyle = '#5BA3C9'
+      ctx!.strokeStyle = '#0B6EE8'
       ctx!.lineWidth   = 2
       ctx!.stroke()
 
@@ -107,7 +107,7 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
         const pt    = polarToXY(angle, data[j].user * R * t)
         ctx!.beginPath()
         ctx!.arc(pt.x, pt.y, 4, 0, Math.PI * 2)
-        ctx!.fillStyle = '#82BCE0'
+        ctx!.fillStyle = '#3B8FF0'
         ctx!.fill()
       }
 
@@ -118,13 +118,13 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
         const pt        = polarToXY(angle, labelDist)
 
         ctx!.font      = '600 11px "Plus Jakarta Sans", sans-serif'
-        ctx!.fillStyle = '#E2EAF2'
+        ctx!.fillStyle = '#070D1A'
         ctx!.textAlign = 'center'
         ctx!.textBaseline = 'middle'
         ctx!.fillText(data[j].label.toUpperCase(), pt.x, pt.y - 6)
 
         ctx!.font      = '400 10px "Plus Jakarta Sans", sans-serif'
-        ctx!.fillStyle = '#7A92A8'
+        ctx!.fillStyle = '#6B7A8D'
         const val = (data[j].user * 10).toFixed(1)
         ctx!.fillText(val, pt.x, pt.y + 8)
       }

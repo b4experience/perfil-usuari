@@ -7,16 +7,13 @@ import {
   useRef,
 } from 'react'
 import { useRouter }             from 'next/navigation'
-import Image                     from 'next/image'
 import { useAppStore }           from '@/context/AppContext'
 import { useT }                  from '@/lib/i18n'
-import { createClient }          from '@/lib/supabase'
 import type { Trial, TrialResponse, Decision, Confidence } from '@/types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TOTAL_TRIALS     = 50
-const FIXATION_MS      = 500
-const MAX_STIMULUS_MS  = 8000
+const FIXATION_MS      = 200   // spec §4.1: 200ms fixed transition
 const CONFIDENCE_MS    = 3000
 const ITI_MS           = 300
 const CONFIDENCE_DELAY = 200
@@ -33,11 +30,11 @@ type Phase =
 
 // ─── Confidence color map ─────────────────────────────────────────────────────
 const CONFIDENCE_COLORS: Record<number, { bg: string; border: string; text: string }> = {
-  1: { bg: 'rgba(201,64,64,0.15)',  border: '#C94040', text: '#E05A5A' },
-  2: { bg: 'rgba(212,160,48,0.15)', border: '#D4A030', text: '#E8BA50' },
-  3: { bg: 'rgba(122,146,168,0.15)',border: '#7A92A8', text: '#A0B8CC' },
-  4: { bg: 'rgba(91,163,201,0.15)', border: '#5BA3C9', text: '#82BCE0' },
-  5: { bg: 'rgba(61,170,115,0.15)', border: '#3DAA73', text: '#58C98D' },
+  1: { bg: 'rgba(245,80,77,0.10)',   border: '#F5504D', text: '#F5504D' },
+  2: { bg: 'rgba(209,116,0,0.10)',   border: '#D17400', text: '#D17400' },
+  3: { bg: 'rgba(107,122,141,0.10)', border: '#6B7A8D', text: '#6B7A8D' },
+  4: { bg: 'rgba(11,110,232,0.10)',  border: '#0B6EE8', text: '#0B6EE8' },
+  5: { bg: 'rgba(26,158,70,0.10)',   border: '#1A9E46', text: '#1A9E46' },
 }
 
 // ─── Mock trial loader (replace with Supabase fetch in production) ────────────
@@ -68,13 +65,13 @@ export default function TestPage() {
   const [phase,         setPhase]       = useState<Phase>('intro')
   const [trials,        setTrials]      = useState<Trial[]>([])
   const [trialIndex,    setTrialIndex]  = useState(0)
-  const [responses,     setResponses]   = useState<TrialResponse[]>([])
+  const [, setResponses]   = useState<TrialResponse[]>([])
 
   // Per-trial transient state
-  const [stimulusStart, setStimulusStart] = useState(0)
+  const tStartRef   = useRef<number>(0)               // performance.now() at image visible — spec §4.2
   const [lastDecision,  setLastDecision]  = useState<Decision | null>(null)
-  const [confSelected,  setConfSelected]  = useState<Confidence | null>(null)
   const [confTimer,     setConfTimer]     = useState(0)
+  const [milestone,     setMilestone]     = useState<number | null>(null)  // "Llevas X/50 ✓" §6.1
 
   // Refs for timers
   const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -103,9 +100,8 @@ export default function TestPage() {
   const startFixation = useCallback(() => {
     setPhase('fixation')
     setLastDecision(null)
-    setConfSelected(null)
     timerRef.current = setTimeout(() => {
-      setStimulusStart(Date.now())
+      tStartRef.current = performance.now()  // spec §4.2: performance.now() after render
       setPhase('stimulus')
     }, FIXATION_MS)
   }, [])
@@ -113,7 +109,8 @@ export default function TestPage() {
   // ── Handle decision (YES / NO) ─────────────────────────────────────────────
   const handleDecision = useCallback((decision: Decision) => {
     if (phase !== 'stimulus') return
-    const rt = Date.now() - stimulusStart
+    const t_end = performance.now()                          // spec §4.2: first instruction
+    const rt = Math.round(t_end - tStartRef.current)        // spec §4.2: RT_ms
     setLastDecision(decision)
 
     // Record partial response (confidence will be added after)
@@ -144,12 +141,11 @@ export default function TestPage() {
         })
       }, 1000)
     }, CONFIDENCE_DELAY)
-  }, [phase, stimulusStart, trialIndex, currentTrial])
+  }, [phase, trialIndex, currentTrial])
 
   // ── Commit confidence and advance to next trial ────────────────────────────
   const commitConfidence = useCallback((conf: Confidence | null) => {
     if (confTimerRef.current) clearInterval(confTimerRef.current)
-    setConfSelected(conf)
 
     // Update last response with confidence
     setResponses((prev) => {
@@ -162,8 +158,14 @@ export default function TestPage() {
 
     setPhase('iti')
 
+    // Show milestone every 10 trials — spec §6.1 step 4
+    const next = trialIndex + 1
+    if (next > 0 && next % 10 === 0 && next < TOTAL_TRIALS) {
+      setMilestone(next)
+      setTimeout(() => setMilestone(null), 2000)
+    }
+
     timerRef.current = setTimeout(() => {
-      const next = trialIndex + 1
       if (next >= TOTAL_TRIALS) {
         // All trials done → calculating
         setPhase('calculating')
@@ -198,53 +200,56 @@ export default function TestPage() {
   // ── INTRO SCREEN ─────────────────────────────────────────────────────────────
   if (phase === 'intro') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 py-10 animate-fade-in">
-        <div className="w-full max-w-lg text-center">
+      <div className="h-full flex flex-col overflow-y-auto no-scrollbar">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-4 text-center">
+          <div className="w-full max-w-sm">
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-summit/10 border border-summit/30 mb-6">
-            <span className="text-summit text-xs">🧠</span>
-            <span className="text-xs font-display font-600 text-summit tracking-wide">B4E Protocol · DDM</span>
-          </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-summit/10 border border-summit/30 mb-3">
+              <span className="text-summit text-xs">🧠</span>
+              <span className="text-xs font-display font-600 text-summit tracking-wide">B4E Protocol · DDM</span>
+            </div>
 
-          <h1 className="font-display font-800 text-3xl sm:text-4xl text-text-primary mb-3">
-            {t.testIntroTitle}
-          </h1>
-          <p className="font-body text-text-secondary text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-            {t.testIntroSub}
-          </p>
+            <h1 className="font-display font-800 text-2xl sm:text-3xl text-text-primary mb-2">
+              {t.testIntroTitle}
+            </h1>
+            <p className="font-body text-text-secondary text-xs sm:text-sm mb-4 mx-auto leading-relaxed">
+              {t.testIntroSub}
+            </p>
 
-          {/* Instructions */}
-          <div className="b4e-card p-5 text-left mb-8 space-y-3">
-            {t.testIntroInstructions.map((inst, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-glacier/20 border border-glacier/40 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="font-mono text-xs text-glacier">{i + 1}</span>
+            {/* Instructions */}
+            <div className="b4e-card p-3 sm:p-4 text-left mb-4 space-y-2">
+              {t.testIntroInstructions.map((inst, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-glacier/20 border border-glacier/40 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="font-mono text-[10px] text-glacier">{i + 1}</span>
+                  </div>
+                  <p className="font-body text-xs sm:text-sm text-text-secondary leading-relaxed">{inst}</p>
                 </div>
-                <p className="font-body text-sm text-text-secondary leading-relaxed">{inst}</p>
+              ))}
+            </div>
+
+            {/* Key shortcuts — desktop only */}
+            <div className="hidden sm:flex items-center justify-center gap-5 mb-4 text-xs font-body text-text-muted">
+              <div className="flex items-center gap-1.5">
+                <kbd className="px-2 py-0.5 rounded border border-border bg-bg-elevated font-mono text-xs">→</kbd>
+                <span>Sí</span>
               </div>
-            ))}
-          </div>
+              <div className="flex items-center gap-1.5">
+                <kbd className="px-2 py-0.5 rounded border border-border bg-bg-elevated font-mono text-xs">←</kbd>
+                <span>No</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <kbd className="px-2 py-0.5 rounded border border-border bg-bg-elevated font-mono text-xs">1–5</kbd>
+                <span>Confianza</span>
+              </div>
+            </div>
 
-          {/* Key shortcuts hint */}
-          <div className="flex items-center justify-center gap-6 mb-8 text-xs font-body text-text-muted">
-            <div className="flex items-center gap-1.5">
-              <kbd className="px-2 py-1 rounded border border-border bg-bg-elevated font-mono">→</kbd>
-              <span>Sí</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <kbd className="px-2 py-1 rounded border border-border bg-bg-elevated font-mono">←</kbd>
-              <span>No</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <kbd className="px-2 py-1 rounded border border-border bg-bg-elevated font-mono">1–5</kbd>
-              <span>Confianza</span>
-            </div>
           </div>
+        </div>
 
-          <button
-            className="btn-primary px-8 py-4 text-base w-full max-w-xs"
-            onClick={startFixation}
-          >
+        {/* Sticky start button */}
+        <div className="shrink-0 px-4 pb-4 flex justify-center">
+          <button className="btn-primary w-full max-w-sm py-3 text-sm sm:text-base" onClick={startFixation}>
             {t.startNow}
           </button>
         </div>
@@ -255,15 +260,15 @@ export default function TestPage() {
   // ── CALCULATING SCREEN ────────────────────────────────────────────────────────
   if (phase === 'calculating') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-4 animate-fade-in">
+      <div className="h-full flex flex-col items-center justify-center px-4 animate-fade-in">
         <div className="text-center">
           {/* Animated spinner */}
           <div className="relative w-20 h-20 mx-auto mb-8">
             <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="#1E2F42" strokeWidth="4"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#DDE4EE" strokeWidth="4"/>
               <circle
                 cx="40" cy="40" r="34" fill="none"
-                stroke="#5BA3C9" strokeWidth="4"
+                stroke="#0B6EE8" strokeWidth="4"
                 strokeDasharray="213.6"
                 strokeDashoffset="53.4"
                 strokeLinecap="round"
@@ -301,7 +306,7 @@ export default function TestPage() {
                 style={{ animationDelay: `${i * 400}ms`, opacity: 0 }}
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6L5 9L10 3" stroke="#3DAA73" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 6L5 9L10 3" stroke="#1A9E46" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span className="text-xs font-body text-text-secondary">{step}</span>
               </div>
@@ -314,16 +319,14 @@ export default function TestPage() {
 
   // ── TEST SCREENS (fixation / stimulus / confidence / iti) ─────────────────────
   return (
-    <div className="flex flex-col items-center min-h-[calc(100vh-80px)] px-4 py-4">
-      <div className="w-full max-w-lg flex flex-col gap-4">
+    <div className="h-full flex flex-col overflow-hidden px-3 sm:px-4">
+      <div className="w-full max-w-lg mx-auto flex flex-col h-full">
 
-        {/* ── Progress header ──────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
+        {/* ── Progress header — shrink-0 ────────────────────────────────────── */}
+        <div className="shrink-0 flex items-center justify-between pt-2 pb-1">
           <span className="font-mono text-xs text-text-muted">
             {trialIndex + 1} {t.trialOf} {TOTAL_TRIALS}
           </span>
-
-          {/* Block indicator */}
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((b) => {
               const blockStart = [0, 8, 20, 38, 46][b - 1]
@@ -331,93 +334,76 @@ export default function TestPage() {
               const active     = trialIndex >= blockStart && trialIndex < blockEnd
               const done       = trialIndex >= blockEnd
               return (
-                <div
-                  key={b}
-                  className={`h-1 rounded-full transition-all duration-300 ${
-                    done   ? 'bg-glacier w-4' :
-                    active ? 'bg-glacier/60 w-6' :
-                             'bg-border w-2'
-                  }`}
-                />
+                <div key={b} className={`h-1 rounded-full transition-all duration-300 ${
+                  done   ? 'bg-glacier w-4' :
+                  active ? 'bg-glacier/60 w-6' :
+                           'bg-border w-2'
+                }`} />
               )
             })}
           </div>
-
-          <span className="font-mono text-xs text-glacier">
-            {Math.round(progress)}%
-          </span>
+          <span className="font-mono text-xs text-glacier">{Math.round(progress)}%</span>
         </div>
 
-        {/* Full progress bar */}
-        <div className="progress-bar-track">
+        {/* Progress bar — shrink-0 */}
+        <div className="shrink-0 progress-bar-track mb-1">
           <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
         </div>
 
-        {/* ── Trial container ───────────────────────────────────────────────── */}
-        <div className="relative">
+        {/* Milestone banner — shrink-0, spec §6.1 step 4 */}
+        {milestone !== null && (
+          <div className="shrink-0 animate-fade-in text-center py-1">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-glacier/10 border border-glacier/30 font-display font-600 text-xs text-glacier">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#0B6EE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Llevas {milestone}/50 ✓
+            </span>
+          </div>
+        )}
+
+        {/* ── Image area — flex-1, centers the 4:5 card vertically ─────────── */}
+        <div className="flex-1 flex items-center justify-center min-h-0 py-1">
 
           {/* FIXATION DOT */}
           {phase === 'fixation' && (
             <div
-              className="flex items-center justify-center bg-bg-surface border border-border rounded-2xl animate-fade-in"
-              style={{ aspectRatio: '5/4' }}
+              className="flex items-center justify-center bg-bg-elevated border border-border rounded-2xl animate-fade-in"
+              style={{ aspectRatio: '4/5', height: '100%', maxHeight: '340px', maxWidth: '100%' }}
             >
               <div className="w-3 h-3 rounded-full bg-text-muted animate-pulse-slow" />
             </div>
           )}
 
           {/* STIMULUS IMAGE */}
-          {(phase === 'stimulus' || phase === 'confidence' || phase === 'iti') && currentTrial && (
-            <div className={`relative rounded-2xl overflow-hidden border-2 transition-all duration-150
-              ${phase === 'confidence' ? (
-                lastDecision === 'yes' ? 'border-safe' : 'border-danger'
-              ) : 'border-border'}
-            `}
-              style={{ aspectRatio: '5/4' }}
+          {(phase === 'stimulus' || phase === 'confidence') && currentTrial && (
+            <div
+              className={`relative rounded-2xl overflow-hidden border-2 transition-all duration-150 ${
+                phase === 'confidence'
+                  ? lastDecision === 'yes' ? 'border-safe' : 'border-danger'
+                  : 'border-border'
+              }`}
+              style={{ aspectRatio: '4/5', height: '100%', maxHeight: '340px', maxWidth: '100%' }}
             >
-              {/* Actual mountain image — replace src with real URL from Supabase */}
-              <div
-                className="w-full h-full bg-gradient-to-br from-bg-elevated to-bg-surface flex items-center justify-center"
-              >
-                {/* Placeholder mountain silhouette SVG for development */}
-                <svg viewBox="0 0 400 320" className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+              {/* spec §5.1: fade to 30% opacity during confidence */}
+              <div className={`w-full h-full bg-gradient-to-br from-bg-elevated to-bg-surface flex items-center justify-center transition-opacity duration-150 ${phase === 'confidence' ? 'opacity-30' : 'opacity-100'}`}>
+                <svg viewBox="0 0 320 400" className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0E1520"/>
-                      <stop offset="100%" stopColor="#162232"/>
+                      <stop offset="0%" stopColor="#D6E8FF"/>
+                      <stop offset="100%" stopColor="#EBF2FB"/>
                     </linearGradient>
                   </defs>
-                  <rect width="400" height="320" fill="url(#sky)"/>
-                  <path d="M0 320 L0 200 L60 140 L120 170 L200 80 L260 110 L320 60 L380 100 L400 80 L400 320 Z" fill="#1A293B"/>
-                  <path d="M0 320 L0 240 L80 200 L160 220 L230 180 L290 195 L360 170 L400 185 L400 320 Z" fill="#0E1520"/>
-                  <text x="200" y="165" textAnchor="middle" fill="#3E5268" fontSize="11" fontFamily="Plus Jakarta Sans">
-                    {currentTrial.id}
-                  </text>
-                  <text x="200" y="182" textAnchor="middle" fill="#3E5268" fontSize="10" fontFamily="JetBrains Mono">
-                    [{currentTrial.riskLevel.toUpperCase()}]
-                  </text>
+                  <rect width="320" height="400" fill="url(#sky)"/>
+                  <path d="M0 400 L0 260 L50 190 L100 220 L160 110 L210 145 L260 80 L300 110 L320 95 L320 400 Z" fill="#C8D5E8"/>
+                  <path d="M0 400 L0 310 L70 270 L130 285 L190 245 L240 258 L290 235 L320 248 L320 400 Z" fill="#DDE4EE"/>
+                  <text x="160" y="195" textAnchor="middle" fill="#6B7A8D" fontSize="11" fontFamily="Plus Jakarta Sans">{currentTrial.id}</text>
+                  <text x="160" y="212" textAnchor="middle" fill="#6B7A8D" fontSize="10" fontFamily="JetBrains Mono">[{currentTrial.riskLevel.toUpperCase()}]</text>
                 </svg>
-
-                {/* Decision overlay flash */}
                 {phase === 'confidence' && (
-                  <div className={`absolute inset-0 rounded-2xl pointer-events-none
-                    ${lastDecision === 'yes' ? 'bg-safe/10' : 'bg-danger/10'}
-                    animate-fade-in
-                  `} />
+                  <div className={`absolute inset-0 pointer-events-none ${lastDecision === 'yes' ? 'bg-safe/10' : 'bg-danger/10'} animate-fade-in`} />
                 )}
               </div>
-
-              {/* Decision badge */}
               {phase === 'confidence' && lastDecision && (
-                <div className={`
-                  absolute top-3 right-3 px-3 py-1.5 rounded-full
-                  font-display font-700 text-xs uppercase tracking-wider
-                  animate-scale-in
-                  ${lastDecision === 'yes'
-                    ? 'bg-safe text-bg-primary'
-                    : 'bg-danger text-white'
-                  }
-                `}>
+                <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full font-display font-700 text-xs uppercase tracking-wider animate-scale-in ${lastDecision === 'yes' ? 'bg-safe text-bg-primary' : 'bg-danger text-white'}`}>
                   {lastDecision === 'yes' ? '✓ SÍ' : '✕ NO'}
                 </div>
               )}
@@ -428,78 +414,76 @@ export default function TestPage() {
           {phase === 'iti' && (
             <div
               className="rounded-2xl bg-bg-primary border border-border"
-              style={{ aspectRatio: '5/4' }}
+              style={{ aspectRatio: '4/5', height: '100%', maxHeight: '340px', maxWidth: '100%' }}
             />
           )}
         </div>
 
-        {/* ── STIMULUS: YES / NO buttons ─────────────────────────────────────── */}
-        {phase === 'stimulus' && (
-          <div className="animate-slide-up">
-            <p className="text-center font-display font-600 text-sm text-text-secondary mb-3">
-              {t.wouldContinue}
-            </p>
-            <div className="flex gap-3">
-              <button className="btn-no" onClick={() => handleDecision('no')}>
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M5 5L13 13M13 5L5 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                {t.no}
-              </button>
-              <button className="btn-yes" onClick={() => handleDecision('yes')}>
-                {t.yes}
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M4 9L7.5 12.5L14 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
+        {/* ── Bottom controls — shrink-0 ────────────────────────────────────── */}
+        <div className="shrink-0 pb-3 pt-1 space-y-2">
 
-        {/* ── CONFIDENCE: 1–5 scale ───────────────────────────────────────────── */}
-        {phase === 'confidence' && (
-          <div className="animate-slide-up">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-display font-600 text-sm text-text-secondary">
-                {t.confidenceQuestion}
+          {/* YES / NO buttons */}
+          {phase === 'stimulus' && (
+            <div className="animate-slide-up">
+              <p className="text-center font-display font-600 text-sm text-text-secondary mb-2">
+                {t.wouldContinue}
               </p>
-              <span className="font-mono text-xs text-text-muted">{confTimer}s</span>
+              <div className="flex gap-3">
+                <button className="btn-no" onClick={() => handleDecision('no')}>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M5 5L13 13M13 5L5 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  {t.no}
+                </button>
+                <button className="btn-yes" onClick={() => handleDecision('yes')}>
+                  {t.yes}
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M4 9L7.5 12.5L14 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
+          )}
 
-            <div className="flex justify-between gap-2">
-              {([1, 2, 3, 4, 5] as Confidence[]).map((level) => {
-                const col = CONFIDENCE_COLORS[level]
-                return (
-                  <button
-                    key={level}
-                    onClick={() => commitConfidence(level)}
-                    className="confidence-dot flex-1"
-                    style={{
-                      background:   col.bg,
-                      border:       `2px solid ${col.border}`,
-                      color:        col.text,
-                    }}
-                    title={t.confidenceLabels[level - 1]}
-                  >
-                    {level}
-                  </button>
-                )
-              })}
+          {/* CONFIDENCE 1–5 scale */}
+          {phase === 'confidence' && (
+            <div className="animate-slide-up">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-display font-600 text-sm text-text-secondary">
+                  {t.confidenceQuestion}
+                </p>
+                <span className="font-mono text-xs text-text-muted">{confTimer}s</span>
+              </div>
+              <div className="flex justify-between gap-1.5">
+                {([1, 2, 3, 4, 5] as Confidence[]).map((level) => {
+                  const col = CONFIDENCE_COLORS[level]
+                  return (
+                    <div key={level} className="flex flex-col items-center gap-1 flex-1">
+                      <button
+                        onClick={() => commitConfidence(level)}
+                        className="confidence-dot w-full"
+                        style={{ background: col.bg, border: `2px solid ${col.border}`, color: col.text }}
+                      >
+                        {level}
+                      </button>
+                      <span className="text-[9px] font-body text-text-muted text-center leading-tight">
+                        {t.confidenceLabels[level - 1]}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
+          )}
 
-            <div className="flex justify-between mt-1.5 px-1">
-              <span className="text-xs font-body text-text-muted">{t.confidenceLabels[0]}</span>
-              <span className="text-xs font-body text-text-muted">{t.confidenceLabels[4]}</span>
-            </div>
-          </div>
-        )}
+          {/* Keyboard hint — desktop only */}
+          {(phase === 'stimulus' || phase === 'confidence') && (
+            <p className="text-center text-xs text-text-muted font-body hidden sm:block">
+              {phase === 'stimulus' ? '← / → o botones táctiles' : 'Teclado 1–5 o toca el número'}
+            </p>
+          )}
+        </div>
 
-        {/* ── Keyboard hint (desktop only) ──────────────────────────────────── */}
-        {(phase === 'stimulus' || phase === 'confidence') && (
-          <p className="text-center text-xs text-text-muted font-body hidden sm:block">
-            {phase === 'stimulus' ? '← / → o botones táctiles' : 'Teclado 1–5 o toca el número'}
-          </p>
-        )}
       </div>
     </div>
   )

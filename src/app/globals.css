@@ -6,25 +6,25 @@
 
 /* ─── CSS Variables ──────────────────────────────────────────────────────── */
 :root {
-  --bg-primary:   #070C12;
-  --bg-surface:   #0E1520;
-  --bg-elevated:  #162232;
-  --bg-card:      #1A293B;
-  --border:       #1E2F42;
-  --border-light: #2A3F56;
+  --bg-primary:   #F0F6FF;
+  --bg-surface:   #F7FAFF;
+  --bg-elevated:  #EBF2FB;
+  --bg-card:      #FFFFFF;
+  --border:       #DDE4EE;
+  --border-light: #C8D5E8;
 
-  --text-primary:   #E2EAF2;
-  --text-secondary: #7A92A8;
-  --text-muted:     #3E5268;
+  --text-primary:   #070D1A;
+  --text-secondary: #2C3E5A;
+  --text-muted:     #6B7A8D;
 
-  --glacier:       #5BA3C9;
-  --glacier-light: #82BCE0;
-  --glacier-dark:  #3A7AA0;
+  --glacier:       #0B6EE8;
+  --glacier-light: #3B8FF0;
+  --glacier-dark:  #0855C4;
   --summit:        #E07840;
   --summit-light:  #F0956A;
-  --safe:          #3DAA73;
-  --danger:        #C94040;
-  --warn:          #D4A030;
+  --safe:          #1A9E46;
+  --danger:        #F5504D;
+  --warn:          #D17400;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -41,6 +41,11 @@ html, body {
   scroll-behavior: smooth;
 }
 
+/* ─── Prevent iOS auto-zoom on input focus (requires font-size >= 16px) ─── */
+input, select, textarea {
+  font-size: 1rem !important;
+}
+
 /* ─── Typography helpers ─────────────────────────────────────────────────── */
 .font-display { font-family: 'Syne', sans-serif; }
 .font-mono    { font-family: 'JetBrains Mono', monospace; }
@@ -48,38 +53,29 @@ html, body {
 /* ─── Mountain background ────────────────────────────────────────────────── */
 .mountain-bg {
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(91,163,201,0.08) 0%, transparent 70%),
-    linear-gradient(180deg, #070C12 0%, #08101A 100%);
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgba(11,110,232,0.07) 0%, transparent 65%),
+    linear-gradient(180deg, #F0F6FF 0%, #EBF2FB 100%);
   position: relative;
   overflow: hidden;
 }
+/* Mountain silhouettes — light blue-gray on light bg */
 .mountain-bg::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='800' height='300' viewBox='0 0 800 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 300 L0 200 L120 120 L200 160 L320 60 L420 110 L500 40 L600 100 L680 70 L800 130 L800 300 Z' fill='%230E1520' /%3E%3Cpath d='M0 300 L0 240 L80 190 L160 210 L260 150 L340 170 L440 110 L520 140 L620 100 L700 120 L800 90 L800 300 Z' fill='%23111E2C' /%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='800' height='300' viewBox='0 0 800 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 300 L0 200 L120 120 L200 160 L320 60 L420 110 L500 40 L600 100 L680 70 L800 130 L800 300 Z' fill='%23DDE4EE' /%3E%3Cpath d='M0 300 L0 240 L80 190 L160 210 L260 150 L340 170 L440 110 L520 140 L620 100 L700 120 L800 90 L800 300 Z' fill='%23E8F0FB' /%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: bottom center;
   background-size: 100% auto;
-  opacity: 0.7;
+  opacity: 0.9;
   pointer-events: none;
-}
-
-/* ─── Noise grain overlay ────────────────────────────────────────────────── */
-.noise-overlay::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0.35;
-  z-index: 0;
 }
 
 /* ─── Custom scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-track { background: var(--bg-elevated); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #A8BACD; }
 
 /* ─── Slider custom styles ───────────────────────────────────────────────── */
 .b4e-slider {
@@ -106,22 +102,22 @@ html, body {
   height: 20px;
   border-radius: 50%;
   background: var(--glacier);
-  border: 2px solid var(--glacier-light);
-  box-shadow: 0 0 0 4px rgba(91,163,201,0.15);
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(11,110,232,0.3), 0 0 0 3px rgba(11,110,232,0.15);
   cursor: grab;
   transition: box-shadow 0.15s, transform 0.15s;
 }
 .b4e-slider::-webkit-slider-thumb:active {
   cursor: grabbing;
   transform: scale(1.15);
-  box-shadow: 0 0 0 8px rgba(91,163,201,0.2);
+  box-shadow: 0 2px 12px rgba(11,110,232,0.4), 0 0 0 6px rgba(11,110,232,0.15);
 }
 .b4e-slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: var(--glacier);
-  border: 2px solid var(--glacier-light);
+  border: 2px solid #FFFFFF;
   cursor: grab;
 }
 
@@ -130,22 +126,26 @@ html, body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  transition: border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(7,13,26,0.06), 0 1px 2px rgba(7,13,26,0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.b4e-card:hover { border-color: var(--border-light); }
+.b4e-card:hover {
+  border-color: var(--border-light);
+  box-shadow: 0 4px 16px rgba(7,13,26,0.09), 0 2px 4px rgba(7,13,26,0.05);
+}
 .b4e-card-active {
   border-color: var(--glacier);
-  box-shadow: 0 0 0 1px var(--glacier-dark), 0 8px 32px rgba(91,163,201,0.15);
+  box-shadow: 0 0 0 1px rgba(11,110,232,0.25), 0 8px 32px rgba(11,110,232,0.12);
 }
 
 /* ─── Button styles ──────────────────────────────────────────────────────── */
 .btn-primary {
   background: var(--glacier);
-  color: #070C12;
+  color: #FFFFFF;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   padding: 0.75rem 1.75rem;
   border-radius: 8px;
   transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
@@ -157,19 +157,19 @@ html, body {
   gap: 0.5rem;
 }
 .btn-primary:hover {
-  background: var(--glacier-light);
-  box-shadow: 0 4px 16px rgba(91,163,201,0.3);
+  background: var(--glacier-dark);
+  box-shadow: 0 4px 20px rgba(11,110,232,0.35);
 }
 .btn-primary:active { transform: scale(0.98); }
 .btn-primary:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
 .btn-ghost {
-  background: transparent;
+  background: #FFFFFF;
   color: var(--text-secondary);
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
@@ -177,18 +177,20 @@ html, body {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   border: 1px solid var(--border);
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  box-shadow: 0 1px 3px rgba(7,13,26,0.06);
+  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
 .btn-ghost:hover {
   border-color: var(--border-light);
   color: var(--text-primary);
   background: var(--bg-elevated);
+  box-shadow: 0 2px 6px rgba(7,13,26,0.08);
 }
 
 /* ─── Input styles ───────────────────────────────────────────────────────── */
 .b4e-input {
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -197,12 +199,13 @@ html, body {
   border-radius: 8px;
   width: 100%;
   outline: none;
+  box-shadow: 0 1px 2px rgba(7,13,26,0.04);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .b4e-input::placeholder { color: var(--text-muted); }
 .b4e-input:focus {
   border-color: var(--glacier);
-  box-shadow: 0 0 0 3px rgba(91,163,201,0.15);
+  box-shadow: 0 0 0 3px rgba(11,110,232,0.12), 0 1px 2px rgba(7,13,26,0.04);
 }
 
 /* ─── Checkbox styles ────────────────────────────────────────────────────── */
@@ -239,7 +242,7 @@ html, body {
 
 /* ─── YES / NO decision buttons ─────────────────────────────────────────── */
 .btn-yes {
-  background: rgba(61,170,115,0.15);
+  background: rgba(26,158,70,0.08);
   border: 2px solid var(--safe);
   color: var(--safe);
   font-family: 'Syne', sans-serif;
@@ -257,13 +260,13 @@ html, body {
   touch-action: manipulation;
 }
 .btn-yes:hover, .btn-yes:active {
-  background: rgba(61,170,115,0.25);
+  background: rgba(26,158,70,0.15);
   transform: scale(1.03);
-  box-shadow: 0 4px 20px rgba(61,170,115,0.3);
+  box-shadow: 0 4px 20px rgba(26,158,70,0.25);
 }
 
 .btn-no {
-  background: rgba(201,64,64,0.15);
+  background: rgba(245,80,77,0.08);
   border: 2px solid var(--danger);
   color: var(--danger);
   font-family: 'Syne', sans-serif;
@@ -281,9 +284,9 @@ html, body {
   touch-action: manipulation;
 }
 .btn-no:hover, .btn-no:active {
-  background: rgba(201,64,64,0.25);
+  background: rgba(245,80,77,0.15);
   transform: scale(1.03);
-  box-shadow: 0 4px 20px rgba(201,64,64,0.3);
+  box-shadow: 0 4px 20px rgba(245,80,77,0.25);
 }
 
 /* ─── Confidence dots ────────────────────────────────────────────────────── */
@@ -317,9 +320,13 @@ html, body {
   fill: var(--text-secondary);
 }
 
+/* ─── No-scrollbar utility ──────────────────────────────────────────────── */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* ─── Utility ────────────────────────────────────────────────────────────── */
 .text-gradient {
-  background: linear-gradient(135deg, var(--glacier-light), var(--glacier));
+  background: linear-gradient(135deg, var(--glacier), var(--glacier-dark));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

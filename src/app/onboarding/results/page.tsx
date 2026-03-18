@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter }                    from 'next/navigation'
 import { useAppStore }                  from '@/context/AppContext'
 import { useT }                         from '@/lib/i18n'
 import RadarChart                       from '@/components/RadarChart'
-import type { ICDResult }               from '@/types'
+import type { ICDResult, TrialResponse }  from '@/types'
 
 // ─── Mock ICD calculator ───────────────────────────────────────────────────────
 // TODO: Replace with real HDDM backend call (Supabase Edge Function or API route)
-function computeMockResult(responses: ReturnType<typeof useAppStore>['testResponses']): ICDResult {
+function computeMockResult(responses: TrialResponse[]): ICDResult {
   if (responses.length === 0) {
     // Demo data if no responses (e.g., direct navigation)
     return {
@@ -61,12 +61,12 @@ function computeMockResult(responses: ReturnType<typeof useAppStore>['testRespon
 
 // ─── ICD color by range ────────────────────────────────────────────────────────
 function icdColor(icd: number) {
-  if (icd < 21) return '#C94040'
-  if (icd < 41) return '#D4A030'
-  if (icd < 61) return '#5BA3C9'
-  if (icd < 76) return '#3DAA73'
-  if (icd < 91) return '#58C98D'
-  return '#82BCE0'
+  if (icd < 21) return '#F5504D'
+  if (icd < 41) return '#D17400'
+  if (icd < 61) return '#0B6EE8'
+  if (icd < 76) return '#1A9E46'
+  if (icd < 91) return '#25B556'
+  return '#3B8FF0'
 }
 
 // ─── Animated ICD counter ──────────────────────────────────────────────────────
@@ -240,101 +240,78 @@ export default function ResultsPage() {
   ]
 
   return (
-    <div
-      className={`
-        flex flex-col items-center px-4 py-8 pb-16
-        transition-opacity duration-500
-        ${visible ? 'opacity-100' : 'opacity-0'}
-      `}
-    >
-      <div className="w-full max-w-lg space-y-6">
+    <div className={`h-full flex flex-col overflow-hidden transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}>
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-bg-elevated border border-border mb-4">
-            <span className="text-xs">⛰️</span>
-            <span className="text-xs font-display font-600 text-text-secondary tracking-wide">
-              {t.resultsDiscipline} · {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-            </span>
-          </div>
-          <h1 className="font-display font-700 text-2xl text-text-primary mb-1">
-            {t.resultsTitle}
-          </h1>
-        </div>
+      {/* ── ICD Score — always visible at top ──────────────────────────── */}
+      <div className="shrink-0 px-3 sm:px-4 pt-3 pb-2">
+        <div className="w-full max-w-lg mx-auto">
 
-        {/* ── ICD Score card ──────────────────────────────────────────────── */}
-        <div
-          className="b4e-card p-6 text-center animate-scale-in"
-          style={{ borderColor: `${color}40`, boxShadow: `0 0 32px ${color}15` }}
-        >
-          <p className="font-body text-xs text-text-secondary uppercase tracking-widest mb-4">
-            {t.icdScore}
-          </p>
-
-          {/* Big score */}
-          <div className="relative inline-block mb-4">
-            <svg viewBox="0 0 160 90" width="240" className="mx-auto">
-              {/* Track */}
-              <path
-                d="M 20 80 A 60 60 0 0 1 140 80"
-                fill="none" stroke="#1E2F42" strokeWidth="10" strokeLinecap="round"
-              />
-              {/* Fill arc */}
-              <path
-                d="M 20 80 A 60 60 0 0 1 140 80"
-                fill="none"
-                stroke={color}
-                strokeWidth="10"
-                strokeLinecap="round"
-                strokeDasharray={`${icd * 1.885} 188.5`}
-                style={{ transition: 'stroke-dasharray 1.5s cubic-bezier(0.4,0,0.2,1)' }}
-              />
-              {/* Score number */}
-              <text x="80" y="68" textAnchor="middle" fill={color}
-                fontFamily="Syne, sans-serif" fontSize="32" fontWeight="800">
-                <ICDCounter target={icd} />
-              </text>
-              <text x="80" y="84" textAnchor="middle" fill="#7A92A8"
-                fontFamily="Plus Jakarta Sans, sans-serif" fontSize="10">
-                / 100
-              </text>
-            </svg>
+          {/* Tiny header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-bg-elevated border border-border">
+              <span className="text-xs">⛰️</span>
+              <span className="text-xs font-display font-600 text-text-secondary">
+                {t.resultsDiscipline} · {new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
+              </span>
+            </div>
+            <h1 className="font-display font-700 text-sm sm:text-base text-text-primary">{t.resultsTitle}</h1>
           </div>
 
-          {/* Level */}
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            <div>
-              <p className="font-display font-800 text-2xl" style={{ color }}>
-                {levelLabel}
-              </p>
-              <p className="font-body text-sm text-text-secondary">
-                {levelNumeric.toFixed(1)} / 10
-              </p>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div>
-              <p className="font-mono font-600 text-lg text-text-primary">
-                P{percentile}
-              </p>
-              <p className="font-body text-xs text-text-secondary">{t.percentileLabel}</p>
-            </div>
-            <div className="w-px h-10 bg-border" />
-            <div>
-              <p className="font-mono font-600 text-lg" style={{ color: safetyFactor >= 1 ? '#3DAA73' : '#D4A030' }}>
-                {safetyFactor.toFixed(2)}
-              </p>
-              <p className="font-body text-xs text-text-secondary">{t.safetyFactorLabel}</p>
+          {/* Compact ICD score card */}
+          <div
+            className="b4e-card px-4 py-3 animate-scale-in"
+            style={{ borderColor: `${color}40`, boxShadow: `0 0 24px ${color}12` }}
+          >
+            <div className="flex items-center gap-4">
+              {/* Semicircle (smaller on mobile) */}
+              <div className="shrink-0">
+                <svg viewBox="0 0 160 90" width="140" className="sm:w-[180px]">
+                  <path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="#DDE4EE" strokeWidth="10" strokeLinecap="round"/>
+                  <path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke={color} strokeWidth="10"
+                    strokeLinecap="round" strokeDasharray={`${icd * 1.885} 188.5`}
+                    style={{ transition: 'stroke-dasharray 1.5s cubic-bezier(0.4,0,0.2,1)' }}/>
+                  <text x="80" y="66" textAnchor="middle" fill={color} fontFamily="Syne, sans-serif" fontSize="30" fontWeight="800">
+                    <ICDCounter target={icd} />
+                  </text>
+                  <text x="80" y="82" textAnchor="middle" fill="#6B7A8D" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="10">/ 100</text>
+                </svg>
+              </div>
+
+              {/* Score details */}
+              <div className="flex-1 flex flex-col gap-1.5">
+                <div>
+                  <p className="font-display font-800 text-xl sm:text-2xl" style={{ color }}>{levelLabel}</p>
+                  <p className="font-body text-xs text-text-secondary">{levelNumeric.toFixed(1)} / 10</p>
+                </div>
+                <div className="flex gap-4">
+                  <div>
+                    <p className="font-mono font-600 text-base text-text-primary">P{percentile}</p>
+                    <p className="font-body text-[10px] text-text-muted">{t.percentileLabel}</p>
+                  </div>
+                  <div>
+                    <p className="font-mono font-600 text-base" style={{ color: safetyFactor >= 1 ? '#1A9E46' : '#D17400' }}>
+                      {safetyFactor.toFixed(2)}
+                    </p>
+                    <p className="font-body text-[10px] text-text-muted">{t.safetyFactorLabel}</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Scrollable content ──────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto no-scrollbar px-3 sm:px-4 pb-2">
+        <div className="w-full max-w-lg mx-auto space-y-3 pt-1">
 
         {/* ── Advisor message ─────────────────────────────────────────────── */}
         <div className="b4e-card p-5 animate-slide-up" style={{ animationDelay: '200ms' }}>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-glacier/10 border border-glacier/30 flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="7" r="6" stroke="#5BA3C9" strokeWidth="1"/>
-                <path d="M7 6v4M7 4.5v.5" stroke="#5BA3C9" strokeWidth="1.2" strokeLinecap="round"/>
+                <circle cx="7" cy="7" r="6" stroke="#0B6EE8" strokeWidth="1"/>
+                <path d="M7 6v4M7 4.5v.5" stroke="#0B6EE8" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
             </div>
             <h3 className="font-display font-700 text-sm text-text-secondary uppercase tracking-wider">
@@ -446,7 +423,7 @@ export default function ResultsPage() {
         {result.disciplineUnlocked && (
           <div
             className="b4e-card p-5 animate-slide-up"
-            style={{ animationDelay: '600ms', borderColor: '#3DAA7340' }}
+            style={{ animationDelay: '600ms', borderColor: '#1A9E4640' }}
           >
             <div className="flex items-center gap-2 mb-3">
               <span className="text-safe">✅</span>
@@ -481,10 +458,14 @@ export default function ResultsPage() {
           </div>
         )}
 
-        {/* ── CTA buttons ─────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-3 animate-slide-up pb-4" style={{ animationDelay: '700ms' }}>
+        </div>{/* close max-w-lg */}
+      </div>{/* close flex-1 overflow-y-auto */}
+
+      {/* ── Sticky CTA footer ───────────────────────────────────────────── */}
+      <div className="shrink-0 px-3 sm:px-4 py-3 border-t border-border bg-bg-primary/95">
+        <div className="w-full max-w-lg mx-auto flex flex-col gap-2">
           <button
-            className="btn-primary w-full py-4"
+            className="btn-primary w-full py-3 text-sm"
             onClick={() => router.push('/')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -494,15 +475,15 @@ export default function ResultsPage() {
             Volver al inicio
           </button>
 
-          <div className="flex gap-3">
-            <button className="btn-ghost flex-1 text-sm flex items-center justify-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <div className="flex gap-2">
+            <button className="btn-ghost flex-1 text-xs flex items-center justify-center gap-1.5 py-2">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <path d="M2 10V12H12V10M7 2V9M4 6L7 9L10 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               {t.downloadPdf}
             </button>
-            <button className="btn-ghost flex-1 text-sm flex items-center justify-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <button className="btn-ghost flex-1 text-xs flex items-center justify-center gap-1.5 py-2">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <circle cx="11" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
                 <circle cx="3"  cy="7" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
                 <circle cx="11" cy="11" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
@@ -512,7 +493,6 @@ export default function ResultsPage() {
             </button>
           </div>
         </div>
-
       </div>
     </div>
   )

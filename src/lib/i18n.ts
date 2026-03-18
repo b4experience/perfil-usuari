@@ -85,23 +85,23 @@ const translations = {
     startTest:     'Comenzar el Test',
     sliderWarning: 'Los sliders no determinan tu perfil final. Solo el test lo hace.',
 
-    // Test
-    testIntroTitle: '50 situaciones de montaña',
-    testIntroSub:   'Se te mostrarán imágenes de situaciones reales. Para cada una responde: ¿Continuarías la ruta en este escenario?',
+    // Test — spec §6.1: gamified copy, NO mention of "test"
+    testIntroTitle: 'Vamos a ver qué imágenes te atreverías a hacer',
+    testIntroSub:   'Se te mostrarán 50 situaciones reales de montaña. Para cada una decide si continuarías o volverías. Confía en tu instinto.',
     testIntroInstructions: [
-      'Decide con tu instinto. No hay tiempo límite, pero confía en tu primera impresión.',
-      'Después de cada decisión valorarás tu confianza (1–5).',
+      'Decide sin pensar demasiado. No hay tiempo límite, pero confía en tu primera impresión.',
+      'Después de cada decisión valorarás tu seguridad (1–5).',
       'No recibirás ningún feedback hasta el final.',
-      'El test dura aproximadamente 8 minutos.',
+      'La sesión dura aproximadamente 8 minutos.',
     ],
-    startNow:      '¡Empezar ahora!',
+    startNow:      '¡Vamos allá!',
     trialOf:       'de',
-    wouldContinue: '¿Continuarías la ruta?',
-    yes:           'Sí, continuaría',
-    no:            'No, volvería',
-    confidenceQuestion: '¿Qué confianza tienes en esta decisión?',
+    wouldContinue: '¿Continuarías?',
+    yes:           'Sí',
+    no:            'No',
+    confidenceQuestion: '¿Con qué seguridad has tomado esta decisión?',  // spec §5.1: exact text
     confidenceLabels: [
-      'Nada seguro/a',
+      'Nada seguro/a',  // spec §5.2
       'Poco seguro/a',
       'Neutro',
       'Bastante seguro/a',
