@@ -4,10 +4,10 @@ import { usePathname } from 'next/navigation'
 import Link            from 'next/link'
 
 const STEPS = [
-  { path: '/onboarding/consent', label: 'Perfil',      num: 1 },
-  { path: '/onboarding/sliders', label: 'Nivel',       num: 2 },
-  { path: '/onboarding/test',    label: 'Test',        num: 3 },
-  { path: '/onboarding/results', label: 'Resultados',  num: 4 },
+  { path: '/onboarding/sliders',    label: 'Nivel',       num: 1 },
+  { path: '/onboarding/activities', label: 'Actividades', num: 2 },
+  { path: '/onboarding/test',       label: 'Test',        num: 3 },
+  { path: '/onboarding/results',    label: 'Resultados',  num: 4 },
 ]
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
