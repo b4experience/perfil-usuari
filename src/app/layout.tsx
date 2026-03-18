@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   description: 'Mide tu competencia decisional ante situaciones de riesgo en montaña. Test científico basado en el Drift Diffusion Model.',
   keywords:    ['montaña', 'seguridad', 'trekking', 'alpinismo', 'evaluación cognitiva', 'B4Experience'],
   authors:     [{ name: 'B4Experience' }],
-  themeColor:  '#0B6EE8',
+  themeColor:  '#020617',  /* slate-950 — matches header */
+  icons:       { icon: '/favicon.ico' },
   openGraph: {
     type:        'website',
     locale:      'es_ES',

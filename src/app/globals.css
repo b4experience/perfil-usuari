@@ -4,27 +4,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Variables ──────────────────────────────────────────────────────── */
+/* ─── CSS Variables — aligned 1:1 with B4E official globals.css ───────────── */
 :root {
-  --bg-primary:   #F0F6FF;
-  --bg-surface:   #F7FAFF;
-  --bg-elevated:  #EBF2FB;
+  /* Exact HSL tokens from the B4E website */
+  --background:         0 0% 100%;        /* hsl → #FFFFFF */
+  --foreground:         222.2 84% 4.9%;   /* hsl → #090E1A */
+  --primary:            217.2 91.2% 45%;  /* hsl → #0F6CBD */
+  --primary-fg:         210 40% 98%;      /* hsl → #F5F9FF */
+  --primary-foreground: 210 40% 98%;      /* shadcn alias */
+  --muted:              210 40% 96.1%;    /* hsl → #EFF3F8 */
+  --muted-fg:           215.4 16.3% 46.9%;/* hsl → #6B7A96 */
+  --muted-foreground:   215.4 16.3% 46.9%;/* shadcn alias */
+  --border-hsl:         214.3 31.8% 91.4%;/* hsl → #E2E8F4 */
+  --secondary:          210 40% 96.1%;    /* same as muted */
+  --secondary-fg:       222.2 47.4% 11.2%;
+  --secondary-foreground: 222.2 47.4% 11.2%;/* shadcn alias */
+  --ring:               217.2 91.2% 45%;  /* same as primary */
+  --radius:             0.75rem;          /* B4E cards use rounded-2xl ≈ 12-16px */
+
+  /* Semantic aliases (used in components) */
+  --bg-primary:   #FFFFFF;
+  --bg-surface:   hsl(210 40% 96.1%);   /* #EFF3F8 — muted sections */
+  --bg-elevated:  hsl(214.3 31.8% 96%); /* slightly tinted for inputs */
   --bg-card:      #FFFFFF;
-  --border:       #DDE4EE;
-  --border-light: #C8D5E8;
 
-  --text-primary:   #070D1A;
-  --text-secondary: #2C3E5A;
-  --text-muted:     #6B7A8D;
+  /* Borders */
+  --border:       hsl(214.3 31.8% 91.4%);  /* #E2E8F4 */
+  --border-light: hsl(214.3 31.8% 84%);    /* #CBD5E8 */
 
-  --glacier:       #0B6EE8;
-  --glacier-light: #3B8FF0;
-  --glacier-dark:  #0855C4;
+  /* Text */
+  --text-primary:   hsl(222.2 84% 4.9%);   /* #090E1A */
+  --text-secondary: hsl(222.2 47.4% 20%);  /* #2C3E5A */
+  --text-muted:     hsl(215.4 16.3% 46.9%);/* #6B7A96 */
+
+  /* Brand — B4E primary blue */
+  --glacier:       hsl(217.2 91.2% 45%);  /* #0F6CBD */
+  --glacier-light: hsl(217.2 70% 55%);    /* #3B8FD8 */
+  --glacier-dark:  hsl(217.2 91.2% 35%);  /* #0855A8 */
+
+  /* Accents */
   --summit:        #E07840;
   --summit-light:  #F0956A;
   --safe:          #1A9E46;
   --danger:        #F5504D;
   --warn:          #D17400;
+
+  /* Shadows */
+  --shadow-card:   0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-hover:  0 10px 40px rgba(15,23,42,0.10), 0 4px 12px rgba(15,23,42,0.06);
+  --shadow-xl:     0 20px 60px rgba(15,23,42,0.08);
+  --shadow-blue:   0 8px 32px rgba(15,108,189,0.18);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -38,10 +67,9 @@ html, body {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
 }
 
-/* ─── Prevent iOS auto-zoom on input focus (requires font-size >= 16px) ─── */
+/* ─── Prevent iOS auto-zoom on input focus ───────────────────────────────── */
 input, select, textarea {
   font-size: 1rem !important;
 }
@@ -50,34 +78,29 @@ input, select, textarea {
 .font-display { font-family: 'Syne', sans-serif; }
 .font-mono    { font-family: 'JetBrains Mono', monospace; }
 
-/* ─── Mountain background ────────────────────────────────────────────────── */
+/* ─── Page background (matches B4E website: white with muted tint) ───────── */
 .mountain-bg {
-  background:
-    radial-gradient(ellipse 80% 55% at 50% 0%, rgba(11,110,232,0.07) 0%, transparent 65%),
-    linear-gradient(180deg, #F0F6FF 0%, #EBF2FB 100%);
+  background: var(--bg-primary);
+  position: relative;
+}
+
+/* ─── Hero section (white card with radius, B4E website pattern) ─────────── */
+.hero-section {
   position: relative;
   overflow: hidden;
-}
-/* Mountain silhouettes — light blue-gray on light bg */
-.mountain-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='800' height='300' viewBox='0 0 800 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 300 L0 200 L120 120 L200 160 L320 60 L420 110 L500 40 L600 100 L680 70 L800 130 L800 300 Z' fill='%23DDE4EE' /%3E%3Cpath d='M0 300 L0 240 L80 190 L160 210 L260 150 L340 170 L440 110 L520 140 L620 100 L700 120 L800 90 L800 300 Z' fill='%23E8F0FB' /%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: bottom center;
-  background-size: 100% auto;
-  opacity: 0.9;
-  pointer-events: none;
+  border-radius: 24px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
 }
 
 /* ─── Custom scrollbar ───────────────────────────────────────────────────── */
-::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar       { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-elevated); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #A8BACD; }
 
-/* ─── Slider custom styles ───────────────────────────────────────────────── */
+/* ─── Slider ─────────────────────────────────────────────────────────────── */
 .b4e-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -97,75 +120,69 @@ input, select, textarea {
 }
 .b4e-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: var(--glacier);
   border: 2px solid #FFFFFF;
-  box-shadow: 0 2px 8px rgba(11,110,232,0.3), 0 0 0 3px rgba(11,110,232,0.15);
+  box-shadow: 0 2px 8px rgba(15,108,189,0.30), 0 0 0 3px rgba(15,108,189,0.12);
   cursor: grab;
   transition: box-shadow 0.15s, transform 0.15s;
 }
 .b4e-slider::-webkit-slider-thumb:active {
   cursor: grabbing;
   transform: scale(1.15);
-  box-shadow: 0 2px 12px rgba(11,110,232,0.4), 0 0 0 6px rgba(11,110,232,0.15);
+  box-shadow: 0 2px 12px rgba(15,108,189,0.40), 0 0 0 6px rgba(15,108,189,0.12);
 }
 .b4e-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  width: 20px; height: 20px;
   border-radius: 50%;
   background: var(--glacier);
   border: 2px solid #FFFFFF;
   cursor: grab;
 }
 
-/* ─── Card styles ────────────────────────────────────────────────────────── */
+/* ─── Cards — matches TravelCard from B4E website (rounded-2xl, hover:shadow-xl) */
 .b4e-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(7,13,26,0.06), 0 1px 2px rgba(7,13,26,0.04);
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.b4e-card:hover {
-  border-color: var(--border-light);
-  box-shadow: 0 4px 16px rgba(7,13,26,0.09), 0 2px 4px rgba(7,13,26,0.05);
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border-hsl));
+  border-radius: 1rem;        /* rounded-2xl = 16px */
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+  color: hsl(var(--foreground));
+  transition: box-shadow 0.3s ease;
 }
 .b4e-card-active {
-  border-color: var(--glacier);
-  box-shadow: 0 0 0 1px rgba(11,110,232,0.25), 0 8px 32px rgba(11,110,232,0.12);
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsla(217.2, 91.2%, 45%, 0.15);
 }
 
-/* ─── Button styles ──────────────────────────────────────────────────────── */
+/* ─── Buttons — B4E website pattern ──────────────────────────────────────── */
 .btn-primary {
-  background: var(--glacier);
-  color: #FFFFFF;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-fg));
   font-family: 'Syne', sans-serif;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.95rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   padding: 0.75rem 1.75rem;
   border-radius: 8px;
-  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
   cursor: pointer;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(15,108,189,0.20);
 }
 .btn-primary:hover {
-  background: var(--glacier-dark);
-  box-shadow: 0 4px 20px rgba(11,110,232,0.35);
+  background: hsl(var(--glacier-dark, 217.2 91.2% 35%));
+  box-shadow: 0 6px 20px rgba(15,108,189,0.30);
+  transform: translateY(-1px);
 }
-.btn-primary:active { transform: scale(0.98); }
+.btn-primary:active { transform: scale(0.98); box-shadow: none; }
 .btn-primary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  opacity: 0.45; cursor: not-allowed;
+  transform: none; box-shadow: none;
 }
 
 .btn-ghost {
@@ -177,44 +194,34 @@ input, select, textarea {
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(7,13,26,0.06);
-  transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 .btn-ghost:hover {
   border-color: var(--border-light);
   color: var(--text-primary);
-  background: var(--bg-elevated);
-  box-shadow: 0 2px 6px rgba(7,13,26,0.08);
+  background: hsl(210 40% 96.1%);
+  box-shadow: 0 2px 8px rgba(15,23,42,0.06);
 }
 
-/* ─── Input styles ───────────────────────────────────────────────────────── */
+/* ─── Input — B4E website pattern (--input border, --radius 0.5rem) ─────── */
 .b4e-input {
   background: #FFFFFF;
-  border: 1px solid var(--border);
+  border: 1px solid hsl(var(--border-hsl, 214.3 31.8% 91.4%));
   color: var(--text-primary);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.95rem;
-  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  padding: 0.7rem 1rem;
   border-radius: 8px;
   width: 100%;
   outline: none;
-  box-shadow: 0 1px 2px rgba(7,13,26,0.04);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .b4e-input::placeholder { color: var(--text-muted); }
 .b4e-input:focus {
-  border-color: var(--glacier);
-  box-shadow: 0 0 0 3px rgba(11,110,232,0.12), 0 1px 2px rgba(7,13,26,0.04);
-}
-
-/* ─── Checkbox styles ────────────────────────────────────────────────────── */
-.b4e-checkbox {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  accent-color: var(--glacier);
-  cursor: pointer;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsla(217.2, 91.2%, 45%, 0.12);
 }
 
 /* ─── Progress bar ───────────────────────────────────────────────────────── */
@@ -231,27 +238,18 @@ input, select, textarea {
   transition: width 0.4s ease;
 }
 
-/* ─── Test image card ────────────────────────────────────────────────────── */
-.trial-image {
-  aspect-ratio: 5 / 4;
-  width: 100%;
-  object-fit: cover;
-  border-radius: 12px;
-  display: block;
-}
-
 /* ─── YES / NO decision buttons ─────────────────────────────────────────── */
 .btn-yes {
-  background: rgba(26,158,70,0.08);
+  background: rgba(26,158,70,0.07);
   border: 2px solid var(--safe);
   color: var(--safe);
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   padding: 1rem 2rem;
-  border-radius: 12px;
+  border-radius: 14px;
   flex: 1;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -260,22 +258,22 @@ input, select, textarea {
   touch-action: manipulation;
 }
 .btn-yes:hover, .btn-yes:active {
-  background: rgba(26,158,70,0.15);
-  transform: scale(1.03);
-  box-shadow: 0 4px 20px rgba(26,158,70,0.25);
+  background: rgba(26,158,70,0.14);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(26,158,70,0.20);
 }
 
 .btn-no {
-  background: rgba(245,80,77,0.08);
+  background: rgba(245,80,77,0.07);
   border: 2px solid var(--danger);
   color: var(--danger);
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   padding: 1rem 2rem;
-  border-radius: 12px;
+  border-radius: 14px;
   flex: 1;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -284,15 +282,14 @@ input, select, textarea {
   touch-action: manipulation;
 }
 .btn-no:hover, .btn-no:active {
-  background: rgba(245,80,77,0.15);
-  transform: scale(1.03);
-  box-shadow: 0 4px 20px rgba(245,80,77,0.25);
+  background: rgba(245,80,77,0.14);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(245,80,77,0.20);
 }
 
 /* ─── Confidence dots ────────────────────────────────────────────────────── */
 .confidence-dot {
-  width: 48px;
-  height: 48px;
+  width: 48px; height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -301,30 +298,17 @@ input, select, textarea {
   font-weight: 600;
   font-size: 1.1rem;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   border: 2px solid transparent;
 }
-.confidence-dot:hover { transform: scale(1.12); }
+.confidence-dot:hover { transform: scale(1.12); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
 .confidence-dot:active { transform: scale(0.95); }
 
-/* ─── ICD score animation ────────────────────────────────────────────────── */
-@keyframes countUp {
-  from { opacity: 0; transform: scale(0.8); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-/* ─── Radar chart label ──────────────────────────────────────────────────── */
-.radar-label {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 11px;
-  fill: var(--text-secondary);
-}
-
-/* ─── No-scrollbar utility ──────────────────────────────────────────────── */
+/* ─── No-scrollbar ───────────────────────────────────────────────────────── */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
-/* ─── Utility ────────────────────────────────────────────────────────────── */
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
 .text-gradient {
   background: linear-gradient(135deg, var(--glacier), var(--glacier-dark));
   -webkit-background-clip: text;
@@ -337,7 +321,15 @@ input, select, textarea {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.divider {
-  height: 1px;
-  background: var(--border);
+.divider { height: 1px; background: var(--border); }
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes deplete {
+  from { width: 100%; }
+  to   { width: 0%; }
 }

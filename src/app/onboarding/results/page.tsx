@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter }                    from 'next/navigation'
-import { useAppStore }                  from '@/context/AppContext'
-import { useT }                         from '@/lib/i18n'
-import RadarChart                       from '@/components/RadarChart'
+import { useEffect, useState }            from 'react'
+import { useRouter }                      from 'next/navigation'
+import { useAppStore }                    from '@/context/AppContext'
+import { useT }                           from '@/lib/i18n'
+import { Button }                         from '@/components/ui/button'
+import { Card }                           from '@/components/ui/card'
+import RadarChart                         from '@/components/RadarChart'
 import type { ICDResult, TrialResponse }  from '@/types'
 
 // ─── Mock ICD calculator ───────────────────────────────────────────────────────
@@ -63,7 +65,7 @@ function computeMockResult(responses: TrialResponse[]): ICDResult {
 function icdColor(icd: number) {
   if (icd < 21) return '#F5504D'
   if (icd < 41) return '#D17400'
-  if (icd < 61) return '#0B6EE8'
+  if (icd < 61) return '#0F6CBD'  // glacier
   if (icd < 76) return '#1A9E46'
   if (icd < 91) return '#25B556'
   return '#3B8FF0'
@@ -310,8 +312,8 @@ export default function ResultsPage() {
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-glacier/10 border border-glacier/30 flex items-center justify-center">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <circle cx="7" cy="7" r="6" stroke="#0B6EE8" strokeWidth="1"/>
-                <path d="M7 6v4M7 4.5v.5" stroke="#0B6EE8" strokeWidth="1.2" strokeLinecap="round"/>
+                <circle cx="7" cy="7" r="6" stroke="#0F6CBD" strokeWidth="1"/>
+                <path d="M7 6v4M7 4.5v.5" stroke="#0F6CBD" strokeWidth="1.2" strokeLinecap="round"/>
               </svg>
             </div>
             <h3 className="font-display font-700 text-sm text-text-secondary uppercase tracking-wider">
@@ -462,27 +464,24 @@ export default function ResultsPage() {
       </div>{/* close flex-1 overflow-y-auto */}
 
       {/* ── Sticky CTA footer ───────────────────────────────────────────── */}
-      <div className="shrink-0 px-3 sm:px-4 py-3 border-t border-border bg-bg-primary/95">
+      <div className="shrink-0 px-3 sm:px-4 py-3 border-t border-border bg-background">
         <div className="w-full max-w-lg mx-auto flex flex-col gap-2">
-          <button
-            className="btn-primary w-full py-3 text-sm"
-            onClick={() => router.push('/')}
-          >
+          <Button className="w-full font-display font-semibold" onClick={() => router.push('/')}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 2L14 12H2L8 2Z" fill="currentColor" opacity="0.4"/>
               <path d="M8 2L14 12H2L8 2Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
             </svg>
             Volver al inicio
-          </button>
+          </Button>
 
           <div className="flex gap-2">
-            <button className="btn-ghost flex-1 text-xs flex items-center justify-center gap-1.5 py-2">
+            <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5">
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <path d="M2 10V12H12V10M7 2V9M4 6L7 9L10 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               {t.downloadPdf}
-            </button>
-            <button className="btn-ghost flex-1 text-xs flex items-center justify-center gap-1.5 py-2">
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1 text-xs gap-1.5">
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                 <circle cx="11" cy="3" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
                 <circle cx="3"  cy="7" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
@@ -490,7 +489,7 @@ export default function ResultsPage() {
                 <path d="M4.3 6.3L9.7 4M4.3 7.7L9.7 10" stroke="currentColor" strokeWidth="1.2"/>
               </svg>
               {t.shareResult}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

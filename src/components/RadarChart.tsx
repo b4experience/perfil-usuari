@@ -97,7 +97,7 @@ export default function RadarChart({ data, size = 280 }: RadarChartProps) {
       ctx!.closePath()
       ctx!.fillStyle   = 'rgba(11,110,232,0.10)'
       ctx!.fill()
-      ctx!.strokeStyle = '#0B6EE8'
+      ctx!.strokeStyle = '#0F6CBD'
       ctx!.lineWidth   = 2
       ctx!.stroke()
 

@@ -1,5 +1,5 @@
 // ─── Locale & Discipline ──────────────────────────────────────────────────────
-export type Locale = 'es' | 'en' | 'ca'
+export type Locale = 'es' | 'en' | 'fr'
 export type Discipline = 'trekking' | 'trail_running' | 'alpinismo' | 'esqui_montana' | 'escalada'
 
 // ─── Onboarding State ─────────────────────────────────────────────────────────

@@ -47,7 +47,13 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      locale: 'es',
+      locale: (() => {
+        if (typeof window === 'undefined') return 'en'
+        const lang = navigator.language.slice(0, 2).toLowerCase()
+        if (lang === 'es') return 'es'
+        if (lang === 'fr') return 'fr'
+        return 'en'
+      })() as Locale,
       setLocale: (locale) => set({ locale }),
 
       userName: '',
